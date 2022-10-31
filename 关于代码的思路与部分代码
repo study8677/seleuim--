@@ -1,0 +1,114 @@
+有更好解决方案的兄弟可以加q1640067418交流
+通过seleuim脚本实现简单的定时抢座功能
+首先，qlu的图书馆的网页端麻烦在于有验证码，通过对登录按钮进行标识，登录成功则跳出登录循环，然后预约功能的实现，就是点击一下座位，因为学校的弹窗还没搞明白是alert还是别的，暂时进行点击空白处来进行过度，难点在于定时预约的实现，
+1.首先在宝塔面板上，bug太多
+2.windows自带的，感觉用bat可以实现。
+3.无脑定时循环，简单粗暴，每二十分钟一次，实现对于座位的无脑循环预约
+4.通过对于url的观察，找到所在楼层的url，将时间与日期进行替换，然后执行登录函数，之后在执行预约函数就好。
+具体部分代码如下：
+  seleuim版本为3.1
+  # !/usr/bin/env python
+  # -*- coding:utf-8 -*-
+  # @FileName  :图书馆预约.py
+  # @Time      :2022/10/18 9:07
+  # @Author    :fjw
+  import ddddocr
+  from selenium import webdriver
+  import ddddocr
+  import time
+  import easyocr
+  import datetime
+  验证码识别函数：
+  def easyshibie(x):
+    reader = easyocr.Reader(['ch_sim', 'en'], gpu=False)  # need to run only once to load model into memory
+    with open('../m.png', 'rb') as f:
+        img_bytes = f.read()
+    result = reader.readtext(r"./m.png", detail=0)
+
+    return result[0]
+    或者
+    def shibie(x):
+    ocr = ddddocr.DdddOcr()
+    with open('../m.png', 'rb') as f:
+        img_bytes = f.read()
+    res = ocr.classification(img_bytes)
+    登录函数的主体部分，本文以六楼西为例，主要通过修改url实现楼层与日期选择，若要实现其功能要加入循环
+    def login(id,pwd):
+      driver.get('http://yuyue.lib.qlu.edu.cn/web/seat3?area=18&segment=1551664&day=' + str(
+                      tomorrow) + '&startTime=' + str(hm) + '&endTime=22:00')
+
+                  time.sleep(3)
+                  # action = ActionChains(driver)
+                  el = driver.find_element_by_link_text('登录')
+                  driver.execute_script("arguments[0].click();", el)
+
+                  driver.find_element_by_xpath('//*[@id="content:login-dialog"]/div/div[1]/input').clear()
+                  driver.find_element_by_xpath('//*[@id="content:login-dialog"]/div/div[1]/input').send_keys(
+                      id)
+                  driver.find_element_by_xpath('//*[@id="content:login-dialog"]/div/div[2]/input').clear()
+                  driver.find_element_by_xpath('//*[@id="content:login-dialog"]/div/div[2]/input').send_keys(
+                      pwd)
+                  yanzhengma = driver.find_element_by_xpath('//*[@id="checkpic"]')
+                  x = yanzhengma.screenshot('m.png')
+
+                  a = easyshibie(x)
+                  # time.sleep(2)
+                  driver.find_element_by_xpath('//*[@id="content:login-dialog"]/div/div[3]/input').clear()
+                  time.sleep(1)
+                  driver.find_element_by_xpath('//*[@id="content:login-dialog"]/div/div[3]/input').send_keys(a)
+                  driver.find_element_by_xpath('/html/body/div[11]/div/table/tbody/tr[3]/td/div[2]/button[2]').click()
+            预约函数
+ def yuyue1(i):
+    while i < 88:
+        try:
+
+            print(i)
+            driver.find_element_by_xpath('//*[@id="floor"]/ul/li[' + str(i) + ']').click()
+            time.sleep(1)
+
+
+
+            driver.find_element_by_xpath('/html/body/div[11]/div/table/tbody/tr[3]/td/div[2]/button[2]').click()
+
+            i=i+1
+            time.sleep(1)
+
+            action.move_by_offset(100,100).click().perform()
+        except:
+            i=i+1
+            continue
+   主函数
+   if __name__ == '__main__':
+    i = 1
+    today = datetime.date.today()
+    tomorrow = today + datetime.timedelta(days=1)
+    ch_options = Options()
+    ch_options.add_argument("--headless")
+    driver = webdriver.Chrome(options=ch_options)
+
+    driver.implicitly_wait(3)
+    id = ''#学号
+    pwd = ''#密码
+    startset = 81 # 起始座位号
+    finallyset = 308 # 终结座位号
+
+
+    while(1):
+        try:
+            hm = datetime.datetime.now().strftime('%H:%M')
+
+            action = ActionChains(driver)
+            login(id, pwd)
+            time.sleep(1)
+            yuyue1(startset)
+            yuyue2(308)
+            yuyue3(1)
+            time.sleep(10)
+            print('已经循环了'+i+'次')
+            i=i+1
+        except:
+            time.sleep(10)
+            continue
+以上代码便是基本思路与步骤，如果要使用，只需要修改登录部分，增加循环与容错便好
+
+    
